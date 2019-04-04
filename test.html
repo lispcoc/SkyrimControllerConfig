@@ -282,14 +282,7 @@
                 var form = $("#aaa");
                 var param = {};
                 var arr = $(".sample :input").serializeArray();
-                arr.forEach(v => {
-                    param[v.name] = v.value;
-                });
-                arr.forEach(v => {
-                    v.value = "0x0001";
-                });
                 console.log(arr);
-                $(".sample :input").deserialize(arr);
             });
         });
     </script>
@@ -298,6 +291,7 @@
 <body>
     <div name="test">
         <input type="file" id="file1"><br>
+        <input type="button" id="show" value="Show"> <br>
     </div>
     <div class="sample" id="table">
     </div>
