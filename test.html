@@ -1,0 +1,306 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+
+    <style type="text/css">
+        body {
+            margin: 5px;
+        }
+
+        #table {
+            display: table;
+        }
+
+        .row {
+            display: table-row;
+        }
+
+        .row>div {
+            display: table-cell;
+            border-style: groove;
+        }
+
+        input.input_form {
+            width: 50px;
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script src="lib.js"></script>
+    <script src="constants.js"></script>
+    <script src="deserialize.js"></script>
+
+    <script type="text/javascript">
+        var key_count = {};
+        var control_map_data = [];
+
+        var getKeyMapFromKey = function (key, key_index, control_map) {
+            var filtered = control_map.filter(key_map => key_map[0] === key);
+            if (key_index >= filtered.length) {
+                return undefined;
+            }
+            return filtered[key_index];
+        }
+
+        var formatMouseVal = function (str) {
+            return str;
+        }
+
+        var loadControlMap = function (e) {
+            var ctl_text = e.target.result;
+            var lines = ctl_text.split(/\r\n|\r|\n/);
+            control_map_data = [[]];
+            var section = 0;
+            lines.forEach(line => {
+                if (line.match(/^\s*\/\//)) {
+                    return;
+                }
+                if (line.match(/^\s*$/)) {
+                    control_map_data.push([]);
+                    section++;
+                }
+                var tmp_array = line.split(/\t+/);
+                tmp_array = tmp_array.filter(n => n !== "");
+                if (7 <= tmp_array.length && tmp_array.length <= 8) {
+                    if (tmp_array.length == 7) {
+                        tmp_array.push("0x0");
+                    }
+                    var id = convEventToId(tmp_array[0]);
+                    var setting = [];
+                    var i;
+                    var tmp_key_val = getKeyVal(tmp_array[1]);
+                    var tmp_mouse_val = getMouseVal(tmp_array[2]);
+                    var tmp_pad_val = getPadKeyVal(tmp_array[3]);
+                    var tmp_remap_key = tmp_array[4];
+                    var tmp_remap_mouse = tmp_array[5];
+                    var tmp_remap_pad = tmp_array[6];
+                    var tmp_flag_val = tmp_array[7];
+                    for (i = 0; i < 4; i++) {
+                        if (i < tmp_key_val.length) {
+                            setting.push({
+                                name: "key_" + id + "_" + i + "_0",
+                                value: tmp_key_val[i][0]
+                            });
+                            setting.push({
+                                name: "key_" + id + "_" + i + "_1",
+                                value: tmp_key_val[i][1]
+                            });
+                        }
+                        if (i < tmp_mouse_val.length) {
+                            setting.push({
+                                name: "mouse_" + id + "_" + i + "_0",
+                                value: tmp_mouse_val[i][0]
+                            });
+                            setting.push({
+                                name: "mouse_" + id + "_" + i + "_1",
+                                value: tmp_mouse_val[i][1]
+                            });
+                        }
+                        if (i < tmp_pad_val.length) {
+                            setting.push({
+                                name: "pad_" + id + "_" + i + "_0",
+                                value: tmp_pad_val[i][0]
+                            });
+                            setting.push({
+                                name: "pad_" + id + "_" + i + "_1",
+                                value: tmp_pad_val[i][1]
+                            });
+                        }
+                        setting.push({
+                            name: "remap_" + id + '_key',
+                            value: tmp_remap_key
+                        });
+                        setting.push({
+                            name: "remap_" + id + '_mouse',
+                            value: tmp_remap_mouse
+                        });
+                        setting.push({
+                            name: "remap_" + id + '_pad',
+                            value: tmp_remap_pad
+                        });
+                        setting.push({
+                            name: "flag_" + id,
+                            value: tmp_flag_val
+                        });
+                    }
+                    setting.forEach(s => {
+                        control_map_data[section].push(s);
+                    });
+                }
+            });
+            console.log(control_map_data);
+
+            $(".sample :input").deserialize(control_map_data[0]);
+        }
+
+        var convEventToId = function (key) {
+            var str = key.toLowerCase().replace(/[\s/]/g, '_');
+            return str;
+        }
+
+        var genSelectKey = function (event) {
+            $option = $('<div>');
+            var i, j;
+            for (i = 0; i < 4; i++) {
+                for (j = 0; j < 2; j++) {
+                    if (j != 0) {
+                        $option.append('+');
+                    }
+                    $tmp = $('<select>')
+                        .prop('name', 'key_' + convEventToId(event) + '_' + i + '_' + j);
+                    keys.forEach(key => {
+                        $tmp.append(
+                            $('<option>')
+                                .val(key[1])
+                                .text(key[0])
+                                .prop('selected', key[1] == "0xff")
+                        );
+                    });
+                    $option.append($tmp);
+                }
+                $option.append('<br>');
+            }
+            return $option;
+        }
+
+        var genSelectMouse = function (event) {
+            $option = $('<div>');
+            var i, j;
+            for (i = 0; i < 4; i++) {
+                for (j = 0; j < 2; j++) {
+                    if (j != 0) {
+                        $option.append('+');
+                    }
+                    $tmp = $('<select>')
+                        .prop('name', 'mouse_' + convEventToId(event) + '_' + i + '_' + j);
+                    mousebuttons.forEach(key => {
+                        $tmp.append(
+                            $('<option>')
+                                .val(key[1])
+                                .text(key[0])
+                                .prop('selected', key[1] == "0xff")
+                        );
+                    });
+                    $option.append($tmp);
+                }
+                $option.append('<br>');
+            }
+            return $option;
+        }
+
+        var genSelectPad = function (event) {
+            $option = $('<div>');
+            var i, j;
+            for (i = 0; i < 4; i++) {
+                for (j = 0; j < 2; j++) {
+                    if (j != 0) {
+                        $option.append('+');
+                    }
+                    $tmp = $('<select>')
+                        .prop('name', 'pad_' + convEventToId(event) + '_' + i + '_' + j);
+                    padkeys.forEach(key => {
+                        $tmp.append(
+                            $('<option>')
+                                .val(key[1])
+                                .text(key[0])
+                                .prop('selected', key[1] == "0xff")
+                        );
+                    });
+                    $option.append($tmp);
+                }
+                $option.append('<br>');
+            }
+            return $option;
+        }
+
+        var genSelectRemap = function (event) {
+            $option = $('<div>');
+            var i, j;
+            var kinds = [
+                ["Keyboard", "key"],
+                ["Mouse", "mouse"],
+                ["Gamepad", "pad"],
+            ];
+            kinds.forEach(k => {
+                $tmp = $('<select>')
+                    .prop('name', 'remap_' + convEventToId(event) + '_' + k[1]);
+                $tmp.append(
+                    $('<option>')
+                        .val('1')
+                        .text('Yes(' + k[0] + ')')
+                        .prop('selected', true)
+                );
+                $tmp.append(
+                    $('<option>')
+                        .val('0')
+                        .text('No(' + k[0] + ')')
+                );
+                $option.append($tmp);
+                $option.append('<br>');
+            });
+            return $option;
+        }
+
+        var genInputFlag = function (event) {
+            $option = $('<div>');
+            $option.append($('<input>')
+                .val('0x0')
+                .prop('name', "flag_" + convEventToId(event)));
+            return $option;
+        }
+
+        $(function () {
+            $.each(main_gameplay_events, function (index, event) {
+                var tmp = $('<div class="row">')
+                tmp.append(
+                    $('<div>')
+                        .append(event)
+                );
+                tmp.append(genSelectKey(event));
+                tmp.append(genSelectMouse(event));
+                tmp.append(genSelectPad(event));
+                tmp.append(genSelectRemap(event));
+                tmp.append(genInputFlag(event));
+                $('.sample').append(tmp);
+            });
+
+            $(document).on("change", "[id^='file1']", function (e) {
+                var file = e.target.files[0];
+                if (file === undefined) {
+                    alert('ファイルが選択されていません。');
+                    return false;
+                } else if (file.type != 'text/plain') {
+                    alert('テキストファイルではありません。');
+                    return false;
+                }
+                var reader = new FileReader();
+                reader.onload = loadControlMap;
+                reader.readAsText(e.target.files[0]);
+            });
+
+            $("#show").click(function () {
+                var form = $("#aaa");
+                var param = {};
+                var arr = $(".sample :input").serializeArray();
+                arr.forEach(v => {
+                    param[v.name] = v.value;
+                });
+                arr.forEach(v => {
+                    v.value = "0x0001";
+                });
+                console.log(arr);
+                $(".sample :input").deserialize(arr);
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <div name="test">
+        <input type="file" id="file1"><br>
+    </div>
+    <div class="sample" id="table">
+    </div>
+</body>
+
+</html>
