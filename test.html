@@ -65,7 +65,7 @@
                     if (tmp_array.length == 7) {
                         tmp_array.push("0x0");
                     }
-                    var id = convEventToId(tmp_array[0]);
+                    var id = convEventToId(tmp_array[0], section);
                     var setting = [];
                     var i;
                     var tmp_key_val = getKeyVal(tmp_array[1]);
@@ -78,31 +78,31 @@
                     for (i = 0; i < 4; i++) {
                         if (i < tmp_key_val.length) {
                             setting.push({
-                                name: "key_" + id + "_" + i + "_0",
+                                name: input_types.key.id + "_" + id + "_" + i + "_0",
                                 value: tmp_key_val[i][0]
                             });
                             setting.push({
-                                name: "key_" + id + "_" + i + "_1",
+                                name: input_types.key.id + "_" + id + "_" + i + "_1",
                                 value: tmp_key_val[i][1]
                             });
                         }
                         if (i < tmp_mouse_val.length) {
                             setting.push({
-                                name: "mouse_" + id + "_" + i + "_0",
+                                name: input_types.mouse.id + "_" + id + "_" + i + "_0",
                                 value: tmp_mouse_val[i][0]
                             });
                             setting.push({
-                                name: "mouse_" + id + "_" + i + "_1",
+                                name: input_types.mouse.id + "_" + id + "_" + i + "_1",
                                 value: tmp_mouse_val[i][1]
                             });
                         }
                         if (i < tmp_pad_val.length) {
                             setting.push({
-                                name: "pad_" + id + "_" + i + "_0",
+                                name: input_types.gamepad.id + "_" + id + "_" + i + "_0",
                                 value: tmp_pad_val[i][0]
                             });
                             setting.push({
-                                name: "pad_" + id + "_" + i + "_1",
+                                name: input_types.gamepad.id + "_" + id + "_" + i + "_1",
                                 value: tmp_pad_val[i][1]
                             });
                         }
@@ -130,110 +130,81 @@
             });
             console.log(control_map_data);
 
-            $(".sample :input").deserialize(control_map_data[0]);
+            control_map_data.forEach(data => {
+                $(".sample :input").deserialize(data);
+            });
         }
 
-        var convEventToId = function (key) {
-            var str = key.toLowerCase().replace(/[\s/]/g, '_');
+        var convEventToId = function (ev, section) {
+            var str = section + "_" + ev.toLowerCase().replace(/[\s/]/g, '_');
             return str;
         }
 
-        var genSelectKey = function (event) {
-            $option = $('<div>');
+        var select_cache = {};
+        var genSelectWrapper = function (type, ev, section) {
+            var $option = $('<div>');
             var i, j;
             for (i = 0; i < 4; i++) {
                 for (j = 0; j < 2; j++) {
                     if (j != 0) {
                         $option.append('+');
                     }
-                    $tmp = $('<select>')
-                        .prop('name', 'key_' + convEventToId(event) + '_' + i + '_' + j);
-                    keys.forEach(key => {
-                        $tmp.append(
-                            $('<option>')
-                                .val(key[1])
-                                .text(key[0])
-                                .prop('selected', key[1] == "0xff")
-                        );
-                    });
-                    $option.append($tmp);
-                }
-                $option.append('<br>');
-            }
-            return $option;
-        }
-
-        var genSelectMouse = function (event) {
-            $option = $('<div>');
-            var i, j;
-            for (i = 0; i < 4; i++) {
-                for (j = 0; j < 2; j++) {
-                    if (j != 0) {
-                        $option.append('+');
+                    if (!select_cache[type.id]) {
+                        $tmp2 = $('<select>');
+                        type.keys.forEach(key => {
+                            $tmp2.append(
+                                $('<option>')
+                                    .val(key[1])
+                                    .text(key[0])
+                                    .prop('selected', key[1] == "0xff")
+                            );
+                        });
+                        main_gameplay_events.forEach(ev => {
+                            $tmp2.append(
+                                $('<option>')
+                                    .val('!0:' + ev)
+                                    .text('!0,' + ev)
+                            );
+                        });
+                        select_cache[type.id] = $tmp2;
+                        console.log("a");
                     }
-                    $tmp = $('<select>')
-                        .prop('name', 'mouse_' + convEventToId(event) + '_' + i + '_' + j);
-                    mousebuttons.forEach(key => {
-                        $tmp.append(
-                            $('<option>')
-                                .val(key[1])
-                                .text(key[0])
-                                .prop('selected', key[1] == "0xff")
-                        );
-                    });
-                    $option.append($tmp);
+                    var $tmp = select_cache[type.id]
+                        .prop('name', type.id + '_' + convEventToId(ev, section) + '_' + i + '_' + j);
+                    $option.append($('<div>').append($tmp).html());
                 }
                 $option.append('<br>');
             }
             return $option;
         }
 
-        var genSelectPad = function (event) {
-            $option = $('<div>');
-            var i, j;
-            for (i = 0; i < 4; i++) {
-                for (j = 0; j < 2; j++) {
-                    if (j != 0) {
-                        $option.append('+');
-                    }
-                    $tmp = $('<select>')
-                        .prop('name', 'pad_' + convEventToId(event) + '_' + i + '_' + j);
-                    padkeys.forEach(key => {
-                        $tmp.append(
-                            $('<option>')
-                                .val(key[1])
-                                .text(key[0])
-                                .prop('selected', key[1] == "0xff")
-                        );
-                    });
-                    $option.append($tmp);
-                }
-                $option.append('<br>');
-            }
-            return $option;
+        var genSelectKey = function (event, section) {
+            return genSelectWrapper(input_types.key, event, section);
         }
 
-        var genSelectRemap = function (event) {
+        var genSelectMouse = function (event, section) {
+            return genSelectWrapper(input_types.mouse, event, section);
+        }
+
+        var genSelectPad = function (event, section) {
+            return genSelectWrapper(input_types.gamepad, event, section);
+        }
+
+        var genSelectRemap = function (event, section) {
             $option = $('<div>');
-            var i, j;
-            var kinds = [
-                ["Keyboard", "key"],
-                ["Mouse", "mouse"],
-                ["Gamepad", "pad"],
-            ];
-            kinds.forEach(k => {
+            input_type_list.forEach(t => {
                 $tmp = $('<select>')
-                    .prop('name', 'remap_' + convEventToId(event) + '_' + k[1]);
+                    .prop('name', 'remap_' + convEventToId(event, section) + '_' + input_types[t].id);
                 $tmp.append(
                     $('<option>')
                         .val('1')
-                        .text('Yes(' + k[0] + ')')
+                        .text('Yes(' + input_types[t].name + ')')
                         .prop('selected', true)
                 );
                 $tmp.append(
                     $('<option>')
                         .val('0')
-                        .text('No(' + k[0] + ')')
+                        .text('No(' + input_types[t].name + ')')
                 );
                 $option.append($tmp);
                 $option.append('<br>');
@@ -241,27 +212,64 @@
             return $option;
         }
 
-        var genInputFlag = function (event) {
+        var genInputFlag = function (event, section) {
             $option = $('<div>');
             $option.append($('<input>')
                 .val('0x0')
-                .prop('name', "flag_" + convEventToId(event)));
+                .prop('name', "flag_" + convEventToId(event, section)));
             return $option;
         }
 
+        var parseControlMapForm = function (form_data) {
+            var section = 0;
+            var result = "";
+            $.each(gameplay_events_list, function (section, l) {
+                l.forEach(ev => {
+                    result += ev + "\t";
+                    input_type_list.forEach(type => {
+                        var keys = [];
+                        var i, j;
+                        for (i = 0; i < 4; i++) {
+                            var tmp = [];
+                            for (j = 0; j < 2; j++) {
+                                var key = type + "_" + convEventToId(ev, section) + "_" + i + "_" + j;
+                                if (form_data[key] && form_data[key] != "0xff") {
+                                    tmp.push(form_data[key].replace(/!0:/g, "!0,"));
+                                }
+                            }
+                            if (tmp.length != 0) {
+                                keys.push(tmp.join('+'));
+                            }
+                        }
+                        if (keys.length != 0) {
+                            result += keys.join(',');
+                        } else {
+                            result += "0xff";
+                        }
+                        result += "\t";
+                    });
+                    result += "\n";
+                });
+                result += "\n";
+            });
+            return result;
+        }
+
         $(function () {
-            $.each(main_gameplay_events, function (index, event) {
-                var tmp = $('<div class="row">')
-                tmp.append(
-                    $('<div>')
-                        .append(event)
-                );
-                tmp.append(genSelectKey(event));
-                tmp.append(genSelectMouse(event));
-                tmp.append(genSelectPad(event));
-                tmp.append(genSelectRemap(event));
-                tmp.append(genInputFlag(event));
-                $('.sample').append(tmp);
+            $.each(gameplay_events_list, function (section, events) {
+                events.forEach(event => {
+                    var tmp = $('<div class="row">')
+                    tmp.append(
+                        $('<div>')
+                            .append(event)
+                    );
+                    tmp.append(genSelectKey(event, section));
+                    tmp.append(genSelectMouse(event, section));
+                    tmp.append(genSelectPad(event, section));
+                    tmp.append(genSelectRemap(event, section));
+                    tmp.append(genInputFlag(event, section));
+                    $('.sample').append(tmp);
+                });
             });
 
             $(document).on("change", "[id^='file1']", function (e) {
@@ -278,11 +286,14 @@
                 reader.readAsText(e.target.files[0]);
             });
 
-            $("#show").click(function () {
-                var form = $("#aaa");
-                var param = {};
+            $("[id^='output']").click(function () {
                 var arr = $(".sample :input").serializeArray();
                 console.log(arr);
+                var form_data = {};
+                arr.forEach(e => {
+                    form_data[e.name] = e.value;
+                });
+                $("[name^='show']").val(parseControlMapForm(form_data));
             });
         });
     </script>
@@ -291,7 +302,8 @@
 <body>
     <div name="test">
         <input type="file" id="file1"><br>
-        <input type="button" id="show" value="Show"> <br>
+        <input type="button" id="output" value="output"><br>
+        <textarea name="show" rows="4" cols="40"></textarea>
     </div>
     <div class="sample" id="table">
     </div>

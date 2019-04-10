@@ -45,6 +45,35 @@ const main_gameplay_events = [
     "Quick Map",
 ];
 
+const menu_mode_events = [
+    "Accept",
+    "Cancel",
+    "Up",
+    "Down",
+    "Left",
+    "Right",
+    "Left Stick",
+    "Console",
+];
+
+const console_events = [
+    "PickPrevious",
+    "PickNext",
+    "Up",
+    "Down",
+    "PageUp",
+    "PageDown",
+    "Console",
+    "NextFocus",
+    "PreviousFocus",
+];
+
+const gameplay_events_list = [
+    main_gameplay_events,
+    menu_mode_events,
+    console_events,
+];
+
 var padkeys = [
     ['-', "0xff"],
     ['↑', "0x0001"],
@@ -207,3 +236,28 @@ var mousebuttons = [
     ['0x9', "0x9"],
     ['0xa', "0xa"],
 ];
+
+const input_type_list = [
+    "key",
+    "mouse",
+    "gamepad",
+];
+
+const input_types = {
+    key: {
+        name: "Keyboard",
+        id: "key",
+        keys: keys,
+    },
+    mouse: {
+        name: "Mouse",
+        id: "mouse",
+        keys: mousebuttons,
+    },
+    gamepad: {
+        name: "Gamepad",
+        id: "pad",
+        keys: padkeys,
+    },
+};
+
