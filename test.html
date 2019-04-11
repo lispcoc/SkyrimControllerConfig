@@ -1,6 +1,8 @@
+<!DOCTYPE html>
 <html>
 
 <head>
+    <title>Skyrim Controller Config</title>
     <meta charset="utf-8">
 
     <style type="text/css">
@@ -29,27 +31,12 @@
     <script src="lib.js"></script>
     <script src="constants.js"></script>
     <script src="deserialize.js"></script>
-
     <script type="text/javascript">
-        var key_count = {};
-        var control_map_data = [];
-
-        var getKeyMapFromKey = function (key, key_index, control_map) {
-            var filtered = control_map.filter(key_map => key_map[0] === key);
-            if (key_index >= filtered.length) {
-                return undefined;
-            }
-            return filtered[key_index];
-        }
-
-        var formatMouseVal = function (str) {
-            return str;
-        }
 
         var loadControlMap = function (e) {
+            var control_map_data = [[]];
             var ctl_text = e.target.result;
             var lines = ctl_text.split(/\r\n|\r|\n/);
-            control_map_data = [[]];
             var section = 0;
             lines.forEach(line => {
                 if (line.match(/^\s*\/\//)) {
@@ -107,15 +94,15 @@
                             });
                         }
                         setting.push({
-                            name: "remap_" + id + '_key',
+                            name: "remap_" + id + '_' + input_types.key.id,
                             value: tmp_remap_key
                         });
                         setting.push({
-                            name: "remap_" + id + '_mouse',
+                            name: "remap_" + id + '_' + input_types.mouse.id,
                             value: tmp_remap_mouse
                         });
                         setting.push({
-                            name: "remap_" + id + '_pad',
+                            name: "remap_" + id + '_' + input_types.gamepad.id,
                             value: tmp_remap_pad
                         });
                         setting.push({
@@ -167,7 +154,6 @@
                             );
                         });
                         select_cache[type.id] = $tmp2;
-                        console.log("a");
                     }
                     var $tmp = select_cache[type.id]
                         .prop('name', type.id + '_' + convEventToId(ev, section) + '_' + i + '_' + j);
@@ -221,20 +207,24 @@
         }
 
         var parseControlMapForm = function (form_data) {
-            var section = 0;
-            var result = "";
-            $.each(gameplay_events_list, function (section, l) {
-                l.forEach(ev => {
-                    result += ev + "\t";
-                    input_type_list.forEach(type => {
+            var array = [];
+            var sorted_input_types = convObjToArray(input_types);
+            $.each(gameplay_events_list, function (section, e) {
+                var lines = [];
+                lines.push("// " + gameplay_events_list[section].name);
+                e.events.forEach(ev => {
+                    var evid = convEventToId(ev, section);
+                    var hash;
+                    var result = ev + "\t";
+                    sorted_input_types.forEach(type => {
                         var keys = [];
                         var i, j;
                         for (i = 0; i < 4; i++) {
                             var tmp = [];
                             for (j = 0; j < 2; j++) {
-                                var key = type + "_" + convEventToId(ev, section) + "_" + i + "_" + j;
-                                if (form_data[key] && form_data[key] != "0xff") {
-                                    tmp.push(form_data[key].replace(/!0:/g, "!0,"));
+                                hash = type.id + "_" + evid + "_" + i + "_" + j;
+                                if (form_data[hash] && form_data[hash] != "0xff") {
+                                    tmp.push(form_data[hash].replace(/!0:/g, "!0,"));
                                 }
                             }
                             if (tmp.length != 0) {
@@ -248,16 +238,32 @@
                         }
                         result += "\t";
                     });
-                    result += "\n";
+                    sorted_input_types.forEach(type => {
+                        hash = "remap_" + evid + '_' + type.id;
+                        if (form_data[hash] && form_data[hash] == "1") {
+                            result += "1" + "\t";
+                        } else {
+                            result += "0" + "\t";
+                        }
+                    });
+                    hash = "flag_" + evid;
+                    if (form_data[hash] && parseInt(form_data[hash]) != 0) {
+                        result += "0x" + parseInt(form_data[hash]).toString(16) + "\t";
+                    }
+                    lines.push(result);
                 });
-                result += "\n";
+                array.push(lines.join("\n"));
             });
-            return result;
+            return array.join("\n\n");
         }
 
         $(function () {
-            $.each(gameplay_events_list, function (section, events) {
-                events.forEach(event => {
+            $.each(gameplay_events_list, function (section, e) {
+                $('.sample').append(
+                    $('<div class="row">')
+                        .append($('<div>').text(e.name))
+                );
+                e.events.forEach(event => {
                     var tmp = $('<div class="row">')
                     tmp.append(
                         $('<div>')

@@ -54,6 +54,8 @@ const menu_mode_events = [
     "Right",
     "Left Stick",
     "Console",
+    "PageUp",
+    "PageDown",
 ];
 
 const console_events = [
@@ -68,10 +70,202 @@ const console_events = [
     "PreviousFocus",
 ];
 
+const item_menus_events = [
+    "LeftEquip",
+    "RightEquip",
+    "Item Zoom",
+    "Rotate",
+    "XButton",
+    "YButton",
+    "Cursor",
+];
+
+const inventory_events = [
+    "ChargeItem",
+];
+
+const debug_text_events = [
+    "PrevPage",
+    "NextPage",
+    "PrevSubPage",
+    "NextSubPage",
+];
+
+const favorites_menu_events = [
+    "Up",
+    "Down",
+    "Accept",
+    "Cancel",
+    "Left Stick",
+    "Cursor",
+];
+
+const map_menu_events = [
+    "Cancel",
+    "Look",
+    "Zoom In",
+    "Zoom Out",
+    "MapLookMode",
+    "Click",
+    "PlacePlayerMarker",
+    "Cursor",
+    "PlayerPosition",
+    "LocalMap",
+    "LocalMapMoveMode",
+    "Up",
+    "Down",
+    "Left",
+    "Right",
+];
+
+const stats_events = [
+    "Rotate",
+];
+
+const cursor_events = [
+    "Cursor",
+    "Click",
+];
+
+const book_events = [
+    "PrevPage",
+    "NextPage",
+];
+
+const debug_overlay_events = [
+    "Console",
+    "NextFocus",
+    "PreviousFocus",
+    "Up",
+    "Down",
+    "Left",
+    "Right",
+    "PageUp",
+    "PageDown",
+    "ToggleMinimize",
+    "ToggleMove",
+    "Close",
+    "F1",
+    "F2",
+    "F3",
+    "F7",
+    "F8",
+    "F9",
+    "F10",
+    "F11",
+    "F12",
+    "LTrigger",
+    "RTrigger",
+    "Backspace",
+    "Enter",
+    "B",
+    "Y",
+    "X",
+];
+
+const journal_events = [
+    "Zoom In",
+    "Zoom Out",
+    "XButton",
+    "YButton",
+    "TabSwitch",
+];
+
+const tfc_mode_events = [
+    "CameraZUp",
+    "CameraZDown",
+    "WorldZUp",
+    "WorldZDown",
+    "LockToZPlane",
+];
+
+const debug_map_menu_like_mode_events = [
+    "Look",
+    "Zoom In",
+    "Zoom Out",
+    "Move",
+];
+
+const lockpicking_events = [
+    "RotatePick",
+    "RotateLock",
+    "DebugMode",
+    "Cancel",
+];
+
+const favor_events = [
+    "Cancel",
+];
+
 const gameplay_events_list = [
-    main_gameplay_events,
-    menu_mode_events,
-    console_events,
+    {
+        events: main_gameplay_events,
+        name: "Main Gameplay",
+    },
+    {
+        events: menu_mode_events,
+        name: "Menu Mode",
+    },
+    {
+        events: console_events,
+        name: "Console",
+    },
+    {
+        events: item_menus_events,
+        name: "Item Menus",
+    },
+    {
+        events: inventory_events,
+        name: "Inventory",
+    },
+    {
+        events: debug_text_events,
+        name: "Debug Text",
+    },
+    {
+        events: favorites_menu_events,
+        name: "Favorites menu",
+    },
+    {
+        events: map_menu_events,
+        name: "Map Menu",
+    },
+    {
+        events: stats_events,
+        name: "Stats",
+    },
+    {
+        events: cursor_events,
+        name: "Cursor",
+    },
+    {
+        events: book_events,
+        name: "Book",
+    },
+    {
+        events: debug_overlay_events,
+        name: "Debug overlay",
+    },
+    {
+        events: journal_events,
+        name: "Journal",
+    },
+    {
+        events: tfc_mode_events,
+        name: "TFC mode",
+    },
+    {
+        events: debug_map_menu_like_mode_events,
+        name: "Debug Map Menu-like mode (but not the actual map menu)",
+    },
+    {
+        events: lockpicking_events,
+        name: " Lockpicking",
+    },
+    {
+        events: favor_events,
+        name: " Favor",
+    },
 ];
 
 var padkeys = [
@@ -225,6 +419,7 @@ var keys = [
 
 var mousebuttons = [
     ['-', "0xff"],
+    ['0x0', "0x0"],
     ['0x1', "0x1"],
     ['0x2', "0x2"],
     ['0x3', "0x3"],
@@ -248,16 +443,19 @@ const input_types = {
         name: "Keyboard",
         id: "key",
         keys: keys,
+        index: 0,
     },
     mouse: {
         name: "Mouse",
         id: "mouse",
         keys: mousebuttons,
+        index: 1,
     },
     gamepad: {
         name: "Gamepad",
         id: "pad",
         keys: padkeys,
+        index: 2,
     },
 };
 
